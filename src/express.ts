@@ -202,24 +202,13 @@ function useHandler(config: {
   const info = config.info!;
 
   return useAsync(async (req: express.Request, res: express.Response) => {
-    // console.log("req", req)
-    // console.log("useAsync", req.params)
-    /*
-       if (operation.kind === "mutation") {
-       console.log("useAsync - body", req.body)
-       }
-     */
-
     const variableValues = info.variables.reduce((variables, variable) => {
-      // console.log("VAR VALS", variables, variable)
       const name = variable.variable.name.value;
       const value = parseVariable({
         value: pickParam(req, name),
         variable,
         schema: sofa.schema,
       });
-
-      console.log('VVs', value, variable);
 
       if (typeof value === 'undefined') {
         return variables;
@@ -230,7 +219,6 @@ function useHandler(config: {
         [name]: value,
       };
 
-      console.log('VER RET', ret);
       return ret;
     }, {});
 
