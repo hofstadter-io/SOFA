@@ -202,7 +202,16 @@ function useHandler(config: {
   const info = config.info!;
 
   return useAsync(async (req: express.Request, res: express.Response) => {
+    // console.log("req", req)
+    // console.log("useAsync", req.params)
+    /*
+       if (operation.kind === "mutation") {
+       console.log("useAsync - body", req.body)
+       }
+     */
+
     const variableValues = info.variables.reduce((variables, variable) => {
+      // console.log("VAR VALS", variables, variable)
       const name = variable.variable.name.value;
       const value = parseVariable({
         value: pickParam(req, name),
@@ -210,14 +219,19 @@ function useHandler(config: {
         schema: sofa.schema,
       });
 
+      console.log('VVs', value, variable);
+
       if (typeof value === 'undefined') {
         return variables;
       }
 
-      return {
+      const ret = {
         ...variables,
         [name]: value,
       };
+
+      console.log('VER RET', ret);
+      return ret;
     }, {});
 
     const C = isContextFn(sofa.context)
