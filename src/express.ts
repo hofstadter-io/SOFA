@@ -8,13 +8,10 @@ import { RouteInfo } from './types';
 import { convertName } from './common';
 import { parseVariable } from './parse';
 import { StartSubscriptionEvent, SubscriptionManager } from './subscriptions';
-import { logger } from './logger';
 
 export type ErrorHandler = (res: express.Response, error: any) => void;
 
 export function createRouter(sofa: Sofa): express.Router {
-  logger.debug('[Sofa] Creating router');
-
   const router = express.Router();
 
   const queryType = sofa.schema.getQueryType();
@@ -130,8 +127,6 @@ function createQueryRoute({
   router: express.Router;
   fieldName: string;
 }): RouteInfo {
-  logger.debug(`[Router] Creating ${fieldName} query`);
-
   const queryType = sofa.schema.getQueryType()!;
   const operation = buildOperation({
     kind: 'query',
@@ -151,8 +146,6 @@ function createQueryRoute({
 
   router.get(path, useHandler({ info, fieldName, sofa, operation }));
 
-  logger.debug(`[Router] ${fieldName} query available at ${path}`);
-
   return {
     document: operation,
     path,
@@ -169,8 +162,6 @@ function createMutationRoute({
   router: express.Router;
   fieldName: string;
 }): RouteInfo {
-  logger.debug(`[Router] Creating ${fieldName} mutation`);
-
   const operation = buildOperation({
     kind: 'mutation',
     schema: sofa.schema,
@@ -182,8 +173,6 @@ function createMutationRoute({
   const path = getPath(fieldName);
 
   router.post(path, useHandler({ info, fieldName, sofa, operation }));
-
-  logger.debug(`[Router] ${fieldName} mutation available at ${path}`);
 
   return {
     document: operation,

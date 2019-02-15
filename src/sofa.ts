@@ -12,7 +12,6 @@ import {
 
 import { Ignore, Context, ContextFn, ExecuteFn, OnRoute } from './types';
 import { convertName } from './common';
-import { logger } from './logger';
 
 // user passes:
 // - schema
@@ -38,13 +37,8 @@ export interface Sofa {
 }
 
 export function createSofa(config: SofaConfig): Sofa {
-  logger.debug('[Sofa] Created');
-
   const models = extractsModels(config.schema);
   const ignore = config.ignore || [];
-
-  logger.debug(`[Sofa] models: ${models.join(', ')}`);
-  logger.debug(`[Sofa] ignore: ${ignore.join(', ')}`);
 
   return {
     context({ req }) {
