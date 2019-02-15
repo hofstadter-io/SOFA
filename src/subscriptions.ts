@@ -11,7 +11,6 @@ import { buildOperation } from './operation';
 import { Sofa, isContextFn } from './sofa';
 import { getOperationInfo } from './ast';
 import { parseVariable } from './parse';
-import { logger } from './logger';
 
 // To start subscription:
 //   - an url that Sofa should trigger
@@ -71,8 +70,10 @@ export class SubscriptionManager {
     event: StartSubscriptionEvent,
     {
       req,
+      res,
     }: {
       req: any;
+      res: any;
     }
   ) {
     const id = uuid();
@@ -84,8 +85,6 @@ export class SubscriptionManager {
 
     const { document, operationName, variables } = this.operations.get(name)!;
 
-    logger.info(`[Subscription] Start ${id}`, event);
-
     const result = await this.execute({
       id,
       name,
@@ -94,6 +93,7 @@ export class SubscriptionManager {
       operationName,
       variables,
       req,
+      res,
     });
 
     if (typeof result !== 'undefined') {
@@ -104,8 +104,6 @@ export class SubscriptionManager {
   }
 
   public async stop(id: ID): Promise<StopSubscriptionResponse> {
-    logger.info(`[Subscription] Stop ${id}`);
-
     if (!this.clients.has(id)) {
       throw new Error(`Subscription with ID '${id}' does not exist`);
     }
@@ -125,13 +123,13 @@ export class SubscriptionManager {
     event: UpdateSubscriptionEvent,
     {
       req,
+      res,
     }: {
       req: any;
+      res: any;
     }
   ) {
     const { variables, id } = event;
-
-    logger.info(`[Subscription] Update ${id}`, event);
 
     if (!this.clients.has(id)) {
       throw new Error(`Subscription with ID '${id}' does not exist`);
@@ -149,6 +147,7 @@ export class SubscriptionManager {
       },
       {
         req,
+        res,
       }
     );
   }
@@ -161,6 +160,7 @@ export class SubscriptionManager {
     operationName,
     variables,
     req,
+    res,
   }: {
     id: ID;
     name: SubscriptionFieldName;
@@ -169,6 +169,7 @@ export class SubscriptionManager {
     operationName: string;
     variables: Record<string, any>;
     req: any;
+    res: any;
   }) {
     const variableNodes = this.operations.get(name)!.variables;
     const variableValues = variableNodes.reduce((values, variable) => {
@@ -188,14 +189,16 @@ export class SubscriptionManager {
       };
     }, {});
 
+    const C = isContextFn(this.sofa.context)
+      ? await this.sofa.context({ req, res })
+      : this.sofa.context;
+
     const execution = await subscribe({
       schema: this.sofa.schema,
       document,
       operationName,
       variableValues,
-      contextValue: isContextFn(this.sofa.context)
-        ? this.sofa.context({ req })
-        : this.sofa.context,
+      contextValue: C,
     });
 
     if (isAsyncIterable(execution)) {
@@ -220,7 +223,6 @@ export class SubscriptionManager {
           this.stop(id);
         },
         e => {
-          logger.info(`Subscription #${id} closed`);
           console.log(e);
           this.stop(id);
         }
@@ -236,8 +238,6 @@ export class SubscriptionManager {
     }
 
     const { url } = this.clients.get(id)!;
-
-    logger.info(`[Subscription] Trigger ${id}`);
 
     await request.post(url, {
       json: result,

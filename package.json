@@ -1,7 +1,7 @@
 {
-  "name": "sofa-api",
+  "name": "@hofstadter-io/sofa-api",
   "description": "Create REST APIs with GraphQL",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "sideEffects": false,
@@ -14,12 +14,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "Urigo/sofa"
+    "url": "hofstadter-io/SOFA"
   },
   "author": {
-    "name": "Uri Goldshtein",
-    "email": "uri.goldshtein@gmail.com",
-    "url": "https://github.com/Urigo"
+    "name": "Tony Worm",
+    "email": "tony@hofstadter.io",
+    "url": "https://github.com/verdverm"
   },
   "peerDependencies": {
     "express": "^4.0.0",
@@ -32,7 +32,6 @@
     "request": "2.88.0",
     "request-promise-native": "1.0.5",
     "uuid": "3.3.2",
-    "winston": "3.1.0",
     "yamljs": "0.3.0"
   },
   "scripts": {

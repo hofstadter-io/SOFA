@@ -28,7 +28,6 @@ import {
 import * as changeCase from 'change-case';
 
 import { Ignore } from './types';
-import { logger } from './logger';
 
 let operationVariables: VariableDefinitionNode[] = [];
 
@@ -61,8 +60,6 @@ export function buildOperation({
   ignore: Ignore;
 }) {
   resetOperationVariables();
-
-  logger.debug(`[Sofa] Building ${field} ${kind}`);
 
   const document = buildDocumentNode({
     schema,
@@ -140,6 +137,8 @@ function buildDocumentNode({
   return document;
 }
 
+const visitedTypes: Record<string, boolean> = {};
+
 function resolveSelectionSet({
   parent,
   type,
@@ -211,10 +210,27 @@ function resolveSelectionSet({
     }
 
     const fields = type.getFields();
+    let filtered: Record<string, any> = {};
 
-    return {
+    // We need to filter the fields for types we've seen
+    // otherwise the field name shows up without the deeper selection of it's subfields
+    Object.values(fields).map(field => {
+      let found = visitedTypes[String(field.type)];
+      // If we have seen this type, then don't recurse again by filtering it
+      if (found) {
+        return;
+      }
+      // Otherwise we should figure out the sub-selection for this field
+      filtered[field.name] = field;
+    });
+
+    // Mark the type as visited before we recurse
+    visitedTypes[type.name] = true;
+
+    // Create the selection sets across the filtered fields
+    const ret: SelectionSetNode = {
       kind: 'SelectionSet',
-      selections: Object.keys(fields).map(fieldName => {
+      selections: Object.keys(filtered).map(fieldName => {
         return resolveField({
           type: type,
           field: fields[fieldName],
@@ -224,6 +240,10 @@ function resolveSelectionSet({
         });
       }),
     };
+
+    // make the type as un-visited as we unwind recursion
+    visitedTypes[type.name] = false;
+    return ret;
   }
 }
 
