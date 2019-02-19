@@ -40,6 +40,8 @@ export function createSofa(config: SofaConfig): Sofa {
   const models = extractsModels(config.schema);
   const ignore = config.ignore || [];
 
+  // console.log("Creating SOFA", config)
+
   return {
     context({ req }) {
       return { req };

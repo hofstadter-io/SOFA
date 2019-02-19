@@ -92,6 +92,7 @@ function buildDocumentNode({
   models: string[];
   ignore: Ignore;
 }) {
+  // console.log("buildDocumentNode", fieldName, kind)
   const typeMap: Record<OperationTypeNode, GraphQLObjectType> = {
     query: schema.getQueryType()!,
     mutation: schema.getMutationType()!,
@@ -189,6 +190,7 @@ function resolveSelectionSet({
   }
 
   if (isObjectType(type)) {
+    // console.log("isObjectType", type)
     const isIgnored =
       ignore.includes(type.name) ||
       ignore.includes(`${parent.name}.${path[path.length - 1]}`);
@@ -215,7 +217,12 @@ function resolveSelectionSet({
     // We need to filter the fields for types we've seen
     // otherwise the field name shows up without the deeper selection of it's subfields
     Object.values(fields).map(field => {
-      let found = visitedTypes[String(field.type)];
+      let ft = String(field.type);
+      if (ft[0] === '[') {
+        ft = ft.substring(1, ft.length - 1);
+      }
+      // console.log("field", field.name, ft)
+      let found = visitedTypes[ft];
       // If we have seen this type, then don't recurse again by filtering it
       if (found) {
         return;
@@ -226,6 +233,7 @@ function resolveSelectionSet({
 
     // Mark the type as visited before we recurse
     visitedTypes[type.name] = true;
+    // console.log("visitedTypes:", visitedTypes)
 
     // Create the selection sets across the filtered fields
     const ret: SelectionSetNode = {
